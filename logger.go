@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"strings"
 )
 
 func newLogger(w io.Writer, verbose bool) *logger {
@@ -59,7 +60,14 @@ func (l *logger) responseLogger(r *http.Request, w http.ResponseWriter) (http.Re
 			if err := rr.HeaderMap.Write(l.o); err != nil {
 				l.l.Printf("error dumping response headers: %v", err)
 			}
-			out = append(out, l.o)
+			switch ct := rr.HeaderMap.Get("Content-Type"); {
+			case ct == "":
+				// ignore no content type
+			case strings.Contains(ct, "text/"):
+				out = append(out, l.o)
+			default:
+				l.l.Printf("not logging content type %q", ct)
+			}
 		}
 
 		if _, err := rr.Body.WriteTo(io.MultiWriter(out...)); err != nil {
