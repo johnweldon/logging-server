@@ -28,7 +28,7 @@ func main() {
 	if p := os.Getenv("PUBLIC_DIR"); p != "" {
 		public = p
 	}
-	if g := os.Getenv("IGNORED_HOSTS"); g != "" {
+	if g := os.Getenv("IGNORE_HOSTS"); g != "" {
 		for _, hn := range strings.Split(g, ",") {
 			if host := strings.TrimSpace(hn); host != "" {
 				log.Printf("  ignoring requests for %q", host)
