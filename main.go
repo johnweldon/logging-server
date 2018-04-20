@@ -30,7 +30,10 @@ func main() {
 	}
 	if g := os.Getenv("IGNORED_HOSTS"); g != "" {
 		for _, hn := range strings.Split(g, ",") {
-			ignored = append(ignored, IgnoreHost(strings.TrimSpace(hn)))
+			if host := strings.TrimSpace(hn); host != "" {
+				log.Printf("  ignoring requests for %q", host)
+				ignored = append(ignored, IgnoreHost(host))
+			}
 		}
 	}
 
