@@ -12,10 +12,11 @@ import (
 
 func IgnoreHost(host string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
-		if r.Header.Get("Host") == host {
-			return true
+		hdr := r.Header.Get("X-Forwarded-Host")
+		if hdr == "" {
+			hdr = r.Header.Get("Host")
 		}
-		return false
+		return hdr == host
 	}
 }
 
