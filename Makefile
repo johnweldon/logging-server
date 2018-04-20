@@ -1,8 +1,7 @@
 IMAGE=docker.jw4.us/logsrv
 
 ifeq ($(REVISION),)
-	DIRTY=$(shell git diff-index --quiet HEAD || echo "-dirty")
-	REVISION=$(shell git rev-parse --short HEAD)$(DIRTY)
+	REVISION=$(shell git describe --dirty --first-parent --always --tags)
 endif
 
 all: image

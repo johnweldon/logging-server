@@ -10,23 +10,46 @@ import (
 	"strings"
 )
 
-func newLogger(w io.Writer, verbose bool) *logger {
+func IgnoreHost(host string) func(*http.Request) bool {
+	return func(r *http.Request) bool {
+		if r.URL.Host == host {
+			return true
+		}
+		return false
+	}
+}
+
+func newLogger(w io.Writer, verbose bool, excludeFilter ...func(*http.Request) bool) *logger {
 	ll := log.New(w, "[http] ", log.LstdFlags|log.LUTC)
-	return &logger{verbose: verbose, l: ll, o: w}
+	return &logger{verbose: verbose, l: ll, o: w, exclude: excludeFilter}
 }
 
 type logger struct {
 	verbose bool
 	o       io.Writer
 	l       *log.Logger
+	exclude []func(*http.Request) bool
 }
 
 func (l *logger) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	l.requestLogger(r)
-	rw, logResponse := l.responseLogger(r, w)
-	defer logResponse()
+	if l.shouldLog(r) {
+		l.requestLogger(r)
+		rw, logResponse := l.responseLogger(r, w)
+		defer logResponse()
 
-	next.ServeHTTP(rw, r)
+		next.ServeHTTP(rw, r)
+		return
+	}
+	next.ServeHTTP(w, r)
+}
+
+func (l *logger) shouldLog(r *http.Request) bool {
+	for _, fn := range l.exclude {
+		if fn(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func (l *logger) requestLogger(r *http.Request) {
