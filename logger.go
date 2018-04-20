@@ -12,7 +12,7 @@ import (
 
 func IgnoreHost(host string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
-		if r.URL.Host == host {
+		if r.Header.Get("Host") == host {
 			return true
 		}
 		return false
