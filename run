@@ -4,6 +4,7 @@ IMAGE=docker.jw4.us/logsrv:latest
 NAME=logsrv
 PORT=${PORT:-11181}
 VERBOSE=${VERBOSE:-}
+IGNORE_HOSTS=${IGNORE_HOSTS:-}
 
 docker pull ${IMAGE}
 docker stop ${NAME}
@@ -15,5 +16,6 @@ docker run -d \
   --restart=always \
   -e VERBOSE="${VERBOSE}" \
   -e PORT="${PORT}" \
+  -e IGNORE_HOSTS="${IGNORE_HOSTS}" \
   -p ${PORT}:${PORT} \
   ${IMAGE}
