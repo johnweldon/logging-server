@@ -56,17 +56,48 @@ func (l *logger) shouldLog(r *http.Request) bool {
 func (l *logger) requestLogger(r *http.Request) {
 	l.l.Printf("(client %s) %s %s %s [%s]", queryIP(r), r.Host, r.Method, r.URL.Path, r.UserAgent())
 	if l.verbose {
+		fmt.Fprint(l.o, "|REQUEST|\n")
 		b, err := httputil.DumpRequest(r, true)
 		if err != nil {
 			l.l.Printf("error dumping request: %v", err)
 			return
 		}
-		fmt.Fprint(l.o, "|REQUEST|\n")
-		if _, err = l.o.Write(b); err != nil {
-			l.l.Printf("error writing dumped request: %v", err)
-			return
+		switch ct := r.Header.Get("Content-Type"); {
+		case ct == "":
+			l.l.Print("missing content-type")
+		case strings.Contains(ct, "text/"), ct == "application/json":
+			if _, err = l.o.Write(b); err != nil {
+				l.l.Printf("error writing dumped request: %v", err)
+				return
+			}
+		default:
+			l.l.Printf("filter dump content-type %q:\n", ct)
+			f := filter(l.o)
+			if _, err = f.Write(b); err != nil {
+				l.l.Printf("error writing dumped request: %v", err)
+				return
+			}
+			l.l.Print("\n")
 		}
 	}
+}
+
+type binaryFilter struct{ w io.Writer }
+
+func (f *binaryFilter) Write(p []byte) (n int, err error) {
+	for ix, b := range p {
+		if b < ' ' {
+			p[ix] = '?'
+		}
+		if b > '~' {
+			p[ix] = '?'
+		}
+	}
+	return f.w.Write(p)
+}
+
+func filter(w io.Writer) io.Writer {
+	return &binaryFilter{w: w}
 }
 
 func (l *logger) responseLogger(r *http.Request, w http.ResponseWriter) (http.ResponseWriter, func()) {
