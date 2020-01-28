@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// IgnoreHost returns the helper function to filter by host
 func IgnoreHost(host string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
 		hdr := r.Header.Get("X-Forwarded-Host")
