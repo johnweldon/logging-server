@@ -40,6 +40,7 @@ func main() {
 	n := negroni.New(
 		negroni.NewRecovery(),
 		newLogger(os.Stdout, verbose, ignored...),
+		negroni.WrapFunc(wpadHandler),
 		negroni.NewStatic(http.Dir(public)))
 
 	s := &http.Server{

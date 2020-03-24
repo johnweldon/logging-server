@@ -1,7 +1,7 @@
 FROM scratch
 
-LABEL maintainer="John Weldon <johnweldon4@gmail.com>" \
-      company="John Weldon Consulting"
+LABEL maintainer="John Weldon <john@tempusbreve.com>" \
+      company="Tempus Breve Software"
 
 COPY public /public/
 ADD logsrv logsrv
